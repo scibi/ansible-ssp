@@ -1,0 +1,73 @@
+---
+
+- name: 'Create SSP group'
+  group:
+    name: '{{ ssp_group }}'
+    system: True
+    state: 'present'
+
+- name: 'Create SSP user'
+  user:
+    name: '{{ ssp_user }}'
+    group: '{{ ssp_group }}'
+    home: '{{ ssp_root_path }}'
+    comment: 'Self Service Password'
+    append: True
+    system: True
+    state: 'present'
+
+- name: Create app directory
+  file:
+    path: '{{ ssp_root_path }}/ssp'
+    state: 'directory'
+    owner: '{{ ssp_user }}'
+    group: '{{ ssp_group }}'
+    mode: '0755'
+
+- name: Create src directory
+  file:
+    path: '{{ ssp_src_path }}'
+    state: 'directory'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+
+- name: Update LibreNMS home directory permissions
+  file:
+    path: '{{ ssp_root_path }}'
+    state: 'directory'
+    owner: '{{ ssp_user}}'
+    group: '{{ ssp_webserver_user }}'
+    mode: '0750'
+
+- name: Gets tarball
+  get_url:
+    url: '{{ ssp_package_url }}'
+    dest: '{{ ssp_src_path }}/{{ ssp_archive_name }}'
+  register: new_archive
+
+- name: Extract source
+  command: tar -zxf '{{ ssp_src_path }}/{{ ssp_archive_name }}' -C '{{ ssp_root_path }}/ssp' --strip-components 1 --overwrite --overwrite-dir
+  become_user: '{{ ssp_user }}'
+  when: new_archive|changed  
+
+- name: Configure SSP
+  template:
+    src: 'ssp/{{ item }}.j2'
+    dest: '/srv/ssp/ssp/conf/{{ item }}'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  with_items:
+    - 'config.inc.php'
+
+- include: ldap_account.yml
+  when: ssp_create_ldap_account
+
+#sudo: yes
+#sudo_user: "{{ deploy_user }}"
+#unarchive:
+#        src="/home/{{ deploy_user }}/some_tarball-{{ tarball_version }}.tar.gz"
+#        dest="/home/{{ deploy_user }}/app/"
+#        copy=no
+#when: new_archive|changed  

@@ -1,0 +1,33 @@
+---
+dependencies:
+  - role: debops.secret
+    tags: [ 'depend::secret', 'depend::secret:ssp', 'depend-of::ssp', 'type::dependency:hard' ]
+
+  - role: debops.php5
+    php5_packages:
+      - php5-ldap
+      - php5-mcrypt
+    php5_pools: [ '{{ ssp_php5_pool }}' ]
+
+  - role: debops.nginx
+    nginx_servers: [ '{{ ssp_nginx_server }}' ]
+    nginx_upstreams: [ '{{ ssp_nginx_upstream_php5 }}' ]
+
+galaxy_info:
+  author: 'Patryk Sciborek'
+  description: 'Self Service Password, PHP application that allows users to change their LDAP password.'
+  company: 'DebOps'
+  license: 'GPLv3'
+  min_ansible_version: '1.7.1'
+  platforms:
+    - name: Ubuntu
+      versions:
+        - precise
+        - trusty
+    - name: Debian
+      versions:
+        - wheezy
+        - jessie
+  categories:
+    - web
+

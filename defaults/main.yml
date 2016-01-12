@@ -1,0 +1,87 @@
+---
+# Default variables
+# =================
+
+# .. contents:: Sections
+#    :local:
+#
+# ----------------------------------
+#   Users and databases to create
+# ----------------------------------
+
+
+# .. envvar:: ssp_domain
+#
+# DNS domain name which will be used for OpenLDAP BaseDN
+ssp_domain: '{{ ansible_domain }}'
+
+
+# .. envvar:: ssp_basedn
+#
+# BaseDN value of the OpenLDAP server
+ssp_basedn: '{{ "dc=" + ssp_domain.split(".") | join(",dc=") }}'
+
+
+# --------------------------------
+#   User, group, app directories
+# --------------------------------
+
+ssp_root_path: '{{ ansible_local.root.data + "/ssp" }}'
+ssp_src_path: '{{ ansible_local.root.src + "/ssp" }}'
+
+
+# .. envvar:: ssp_user
+#
+# LAM system user account
+ssp_user: 'ssp'
+
+
+# .. envvar:: ssp_group
+#
+# LAM system user group
+ssp_group: 'ssp'
+
+# .. envvar:: ssp_webserver_user
+#
+# Name of the webserver user account which will be granted read only access to
+# the LibreNMS application directory.
+ssp_webserver_user: '{{ ansible_local.nginx.user
+                             if (ansible_local|d() and ansible_local.nginx|d() and
+                                 ansible_local.nginx.user|d())
+                              else "www-data" }}'
+
+# .. envvar:: ssp_nginx_filename
+#
+# Name of the ``nginx`` configuration file for LAM, without the
+# ``.conf`` extension.
+ssp_nginx_filename: 'debops.ssp'
+
+
+# .. envvar:: ssp_vhost_domain
+#
+#
+ssp_vhost_domain: '{{ ansible_fqdn }}'
+
+
+ssp_archive_name: 'ltb-project-self-service-password-0.9.tar.gz'
+ssp_package_url: 'http://tools.ltb-project.org/attachments/download/800/{{ ssp_archive_name }}'
+
+ssp_hash_type: 'SSHA'       
+
+ssp_ldap_host: 'ldap.{{ ansible_domain }}'
+ssp_ldap_protocol: 'ldaps'
+ssp_ldap_server_url: '{{ ssp_ldap_protocol }}://{{ ssp_ldap_host }}/'
+ssp_ldap_domain: '{{ ansible_domain }}'
+ssp_ldap_basedn: '{{ "dc=" + ssp_ldap_domain.split(".") | join(",dc=") }}'
+ssp_ldap_binddn: '{{ "cn=ssp," + secret_ldap_services_dn }}'
+ssp_ldap_password_file: '{{ secret + "/credentials/" + ssp_ldap_host + "/slapd/" + ssp_ldap_basedn + "/" + ssp_ldap_binddn + ".password" }}'
+ssp_ldap_password: '{{ lookup("password", ssp_ldap_password_file) }}'
+ssp_enable_questions: false
+ssp_enable_sms: false
+ssp_enable_tokens: false
+ssp_token_lifetime: 300        
+ssp_create_ldap_account: true
+ssp_mail_from: 'admin@{{ ansible_domain }}'
+ssp_notify_on_change: true        
+ssp_keyphrase: '{{ lookup("password", secret + "/credentials/" + ansible_fqdn + "/ssp/keyphrase chars=hexdigits length=30") }}'
+
