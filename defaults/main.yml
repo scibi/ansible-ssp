@@ -50,21 +50,15 @@ ssp_webserver_user: '{{ ansible_local.nginx.user
                                  ansible_local.nginx.user|d())
                               else "www-data" }}'
 
-# .. envvar:: ssp_nginx_filename
-#
-# Name of the ``nginx`` configuration file for LAM, without the
-# ``.conf`` extension.
-ssp_nginx_filename: 'debops.ssp'
 
-
-# .. envvar:: ssp_vhost_domain
+# .. envvar:: ssp__fqdn
 #
 #
-ssp_vhost_domain: '{{ ansible_fqdn }}'
+ssp__fqdn: '{{ ansible_fqdn }}'
 
 
-ssp_archive_name: 'ltb-project-self-service-password-0.9.tar.gz'
-ssp_package_url: 'http://tools.ltb-project.org/attachments/download/800/{{ ssp_archive_name }}'
+ssp_archive_name: 'ltb-project-self-service-password-1.3.tar.gz'
+ssp_package_url: 'http://ltb-project.org/archives/{{ ssp_archive_name }}'
 
 ssp_hash_type: 'SSHA'       
 
@@ -84,4 +78,48 @@ ssp_create_ldap_account: true
 ssp_mail_from: 'admin@{{ ansible_domain }}'
 ssp_notify_on_change: true        
 ssp_keyphrase: '{{ lookup("password", secret + "/credentials/" + ansible_fqdn + "/ssp/keyphrase chars=hexdigits length=30") }}'
+
+# .. envvar:: ssp__php__dependent_packages [[[
+#
+# List of ``php-*`` APT packages to install by the :ref:`debops.php` Ansible
+# role.
+ssp__php__dependent_packages:
+  - 'ldap'
+  - 'mbstring'
+  - 'xml'
+                                                                   # ]]]
+# .. envvar:: ssp__php__dependent_pools [[[
+#
+# PHP-FPM pool configuration for the :ref:`debops.php` Ansible role.
+ssp__php__dependent_pools:
+
+  - name: 'ssp'
+    user: '{{ ssp_user }}'
+    group: '{{ ssp_group }}'
+
+                                                                   # ]]]
+# .. envvar:: ssp__nginx__dependent_upstreams [[[
+#
+# Upstream configuration for the :ref:`debops.nginx` Ansible role.
+ssp__nginx__dependent_upstreams:
+
+  - name: 'php_ssp'
+    type: 'php'
+    php_pool: 'ssp'
+
+                                                                   # ]]]
+# .. envvar:: ssp__nginx__dependent_servers [[[
+#
+# Server configuration for the :ref:`debops.nginx` Ansible role.
+ssp__nginx__dependent_servers:
+
+  - by_role: 'debops.ssp'
+    type: 'php'
+    name: '{{ ssp__fqdn }}'
+    root: '{{ ssp_root_path }}/ssp'
+    filename: 'debops.ssp'
+    php_upstream: 'php_ssp'
+
+    options: |
+      autoindex off;
 

@@ -1,0 +1,131 @@
+<?php
+#
+# {{ ansible_managed }}
+#
+
+
+#==============================================================================
+# Configuration
+#==============================================================================
+
+# Debug mode
+# true: log and display any errors or warnings (use this in configuration/testing)
+# false: log only errors and do not display them (use this in production)
+$debug = false;
+
+# LDAP
+$ldap_url = "{{ ssp_ldap_server_url }}";
+$ldap_starttls = false;
+$ldap_binddn = "{{ ssp_ldap_binddn }}";
+$ldap_bindpw = "{{ ssp_ldap_password }}";
+$ldap_base = "{{ ssp_ldap_basedn }}";
+$ldap_login_attribute = "uid";
+$ldap_fullname_attribute = "cn";
+$ldap_filter = "(&(objectClass=person)($ldap_login_attribute={login}))";
+
+# Hash mechanism for password:
+# SSHA, SSHA256, SSHA384, SSHA512
+# SHA, SHA256, SHA384, SHA512
+# SMD5
+# MD5
+# CRYPT
+# clear (the default)
+# auto (will check the hash of current password)
+# This option is not used with ad_mode = true
+$hash = "{{ ssp_hash_type }}";
+
+# Standard change
+# Use standard change form?
+
+{% if ssp__enable_change|d(false) %}
+$use_change = true;
+
+{% else %}
+# Standard change - see ssp__enable_change
+$use_change = false;
+{% endif %}
+
+## Questions/answers
+{% if ssp_enable_questions|d(false) %}
+	# Use questions/answers?
+	# true (default)
+	# false
+	$use_questions = true;
+
+	# Answer attribute should be hidden to users!
+	$answer_objectClass = "extensibleObject";
+	$answer_attribute = "info";
+
+	# Extra questions (built-in questions are in lang/$lang.inc.php)
+	#$messages['questions']['ice'] = "What is your favorite ice cream flavor?";
+{% else %}
+	# Questions are disabled - see ssp_enable_questions
+	$use_questions = false;
+{% endif %}
+
+## Token
+{% if ssp_enable_tokens|d(false) %}
+	# Use tokens?
+	# true (default)
+	# false
+	$use_tokens = true;
+	# Crypt tokens?
+	# true (default)
+	# false
+	$crypt_tokens = true;
+	# Token lifetime in seconds
+	$token_lifetime = "{{ ssp_token_lifetime|d(300) }}";
+{% else %}
+	# Tokens are disabled - see ssp_enable_tokens
+	$use_tokens = false;
+{% endif %}
+
+## Mail
+# LDAP mail attribute
+$mail_attribute = "mail";
+# Who the email should come from
+$mail_from = "{{ ssp_mail_from }}";
+# Notify users anytime their password is changed
+$notify_on_change = {{ ssp_notify_on_change }};
+
+## SMS
+{% if ssp_enable_sms|d(false) %}
+	# Use sms
+	$use_sms = true;
+	# GSM number attribute
+	$sms_attribute = "mobile";
+	# Partially hide number
+	$sms_partially_hide_number = true;
+	# Send SMS mail to address
+	$smsmailto = "{sms_attribute}@service.provider.com";
+	# Subject when sending email to SMTP to SMS provider
+	$smsmail_subject = "Provider code";
+	# Message
+	$sms_message = "{smsresetmessage} {smstoken}";
+
+	# SMS token length
+	$sms_token_length = 6;
+{% else %}
+	# SMS tokens are disabled - see ssp_enable_questions
+	$use_sms = false;
+{% endif %}
+
+# Display help messages
+$show_help = true;
+
+# Language
+$lang ="{{ ssp__lang|d('en') }}";
+
+
+# Encryption, decryption keyphrase
+$keyphrase = "{{ ssp_keyphrase }}";
+
+## Default action
+# change
+# sendtoken
+# sendsms
+$default_action = "{{ ssp__default_action|d('change') }}";
+
+$mail_protocol = 'sendmail';
+
+?>

@@ -9,7 +9,7 @@
     start_tls:  '{{ secret_ldap_start_tls }}'
     bind_dn: '{{ secret_ldap_admin_bind_dn }}'
     bind_pw: '{{ secret_ldap_admin_bind_pw }}'
-  sudo: '{{ secret_ldap_sudo }}'
+  become: '{{ secret_ldap_sudo }}'
   delegate_to: '{{ secret_ldap_delegate_to }}'
   no_log: True
 
@@ -18,14 +18,15 @@
   ldap_entry:
     dn: '{{ ssp_ldap_binddn }}'
     objectClass: [ 'organizationalRole', 'simpleSecurityObject' ]
-    cn: 'ssp'
-    userPassword: '{{ ssp_ldap_password | ldappassword("SHA") }}'
     state: 'present'
     server_uri: '{{ secret_ldap_server_uri }}'
     start_tls:  '{{ secret_ldap_start_tls }}'
     bind_dn: '{{ secret_ldap_admin_bind_dn }}'
     bind_pw: '{{ secret_ldap_admin_bind_pw }}'
-  sudo: '{{ secret_ldap_sudo }}'
+    attributes:
+      cn: 'ssp'
+      userPassword: '{{ ssp_ldap_password | ldappassword("SHA") }}'
+  become: '{{ secret_ldap_sudo }}'
   delegate_to: '{{ secret_ldap_delegate_to }}'
   no_log: True
 
@@ -39,7 +40,7 @@
     start_tls:  '{{ secret_ldap_start_tls }}'
     bind_dn: '{{ secret_ldap_admin_bind_dn }}'
     bind_pw: '{{ secret_ldap_admin_bind_pw }}'
-  sudo: '{{ secret_ldap_sudo }}'
+  become: '{{ secret_ldap_sudo }}'
   delegate_to: '{{ secret_ldap_delegate_to }}'
   with_dict:
     userPassword: '{{ ssp_ldap_password | ldappassword("SHA") }}'

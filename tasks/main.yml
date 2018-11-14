@@ -32,7 +32,7 @@
     group: 'root'
     mode: '0755'
 
-- name: Update LibreNMS home directory permissions
+- name: Update SSP home directory permissions
   file:
     path: '{{ ssp_root_path }}'
     state: 'directory'
@@ -47,19 +47,19 @@
   register: new_archive
 
 - name: Extract source
-  command: tar -zxf '{{ ssp_src_path }}/{{ ssp_archive_name }}' -C '{{ ssp_root_path }}/ssp' --strip-components 1 --overwrite --overwrite-dir
+  command: tar -zxf '{{ ssp_src_path }}/{{ ssp_archive_name }}' -C '{{ ssp_root_path }}/ssp' --strip-components 1 --overwrite
   become_user: '{{ ssp_user }}'
-  when: new_archive|changed  
+  when: new_archive is changed
 
 - name: Configure SSP
   template:
     src: 'ssp/{{ item }}.j2'
     dest: '/srv/ssp/ssp/conf/{{ item }}'
-    owner: 'root'
-    group: 'root'
-    mode: '0644'
+    owner: '{{ ssp_user}}'
+    group: '{{ ssp_webserver_user }}'
+    mode: '0640'
   with_items:
-    - 'config.inc.php'
+    - 'config.inc.local.php'
 
 - include: ldap_account.yml
   when: ssp_create_ldap_account

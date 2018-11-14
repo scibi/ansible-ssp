@@ -1,17 +1,9 @@
 ---
 dependencies:
+
+  - role: debops.ansible_plugins
+
   - role: debops.secret
-    tags: [ 'depend::secret', 'depend::secret:ssp', 'depend-of::ssp', 'type::dependency:hard' ]
-
-  - role: debops.php5
-    php5_packages:
-      - php5-ldap
-      - php5-mcrypt
-    php5_pools: [ '{{ ssp_php5_pool }}' ]
-
-  - role: debops.nginx
-    nginx_servers: [ '{{ ssp_nginx_server }}' ]
-    nginx_upstreams: [ '{{ ssp_nginx_upstream_php5 }}' ]
 
 galaxy_info:
   author: 'Patryk Sciborek'
